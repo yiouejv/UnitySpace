@@ -4,3 +4,4 @@
 
 把立方体从层次结构窗口（hierarchy window）拖到项目窗口（project window）中 
 
+### 选中gameObject，按w拖动
