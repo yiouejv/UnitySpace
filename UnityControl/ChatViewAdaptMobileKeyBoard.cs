@@ -19,6 +19,7 @@ public class ChatViewAdaptMobileKeyBoard : MonoBehaviour
     public ExtButton sendBtn;
     public int defaultToTop = 300;
     public int hideGoHeight = 170;
+    private bool waitMoving = false;
 
     public float keyboardHeight_local = 0;
     float keyboardHeight_last = 0;
@@ -27,7 +28,6 @@ public class ChatViewAdaptMobileKeyBoard : MonoBehaviour
     /// </summary>
     private Vector2 _adaptPanelOriginPos;
     private Vector2 _adaptPanelOriginPos2;
-    Vector2 screenPos;
 
     public static ChatViewAdaptMobileKeyBoard Create(GameObject attachRoot, InputField inputField)
     {
@@ -48,8 +48,23 @@ public class ChatViewAdaptMobileKeyBoard : MonoBehaviour
         _inputField.shouldHideMobileInput = true;
     }
 
+    float startTime = 0;
+    float startY = 0;
+    float endY = 0;
+    public float speed = 0.5f;
     private void Update()
     {
+        if (waitMoving) {
+            float lerpValue = Mathf.Lerp(startY, endY, (Time.time-startTime) * speed);
+            Vector3 targetVec3 = new Vector3(0, lerpValue, 0);
+            adaptPanelRt.anchoredPosition = targetVec3;
+            adaptPanelRt2.anchoredPosition = targetVec3;
+            if (floatEqual(endY, lerpValue)) {
+                waitMoving = false;
+            }
+            return;
+        }
+
         if (_inputField.isFocused)
         {
 #if UNITY_EDITOR
@@ -65,14 +80,24 @@ public class ChatViewAdaptMobileKeyBoard : MonoBehaviour
 
                 float keyboardHeight = keyboardHeight_local * (float)CanvasScaler.designHeight / (float)Screen.height;
                 if (keyboardHeight <= 0) {
-                    adaptPanelRt.anchoredPosition = _adaptPanelOriginPos;
-                    adaptPanelRt2.anchoredPosition = _adaptPanelOriginPos2;
+                    if (!floatEqual(adaptPanelRt.anchoredPosition.y, _adaptPanelOriginPos.y)) {
+                        startY = endY;
+                        endY = _adaptPanelOriginPos.y;
+                        startTime = Time.time;
+                        waitMoving = true;
+                    }
+
                     if (hideGo) {
                         hideGo.SetActive(true);
                     }
                 } else {
-                    adaptPanelRt.anchoredPosition = Vector3.up * keyboardHeight;
-                    adaptPanelRt2.anchoredPosition = Vector3.up * keyboardHeight;
+                    if (!floatEqual(adaptPanelRt.anchoredPosition.y, keyboardHeight)) {
+                        startY = _adaptPanelOriginPos.y;
+                        endY = keyboardHeight;
+                        startTime = Time.time;
+                        waitMoving = true;
+                    }
+
                     if (hideGo) {
                         hideGo.SetActive(false);
                     }
@@ -82,7 +107,18 @@ public class ChatViewAdaptMobileKeyBoard : MonoBehaviour
         else
         {
             keyboardHeight_last = 0;
+            if (!floatEqual(adaptPanelRt.anchoredPosition.y, _adaptPanelOriginPos.y)) {
+                startY = endY;
+                endY = _adaptPanelOriginPos.y;
+                startTime = Time.time;
+                waitMoving = true;
+            }
         }
+    }
+
+    private bool floatEqual(float x, float y) {
+        float n = x - y;
+        return n >= -0.000001 && n <= 0.000001;
     }
 
     private void OnValueChanged(string arg0) { }
@@ -107,8 +143,6 @@ public class ChatViewAdaptMobileKeyBoard : MonoBehaviour
         {
             sendBtn.onClick.Invoke();
         }
-        adaptPanelRt.anchoredPosition = _adaptPanelOriginPos;
-        adaptPanelRt2.anchoredPosition = _adaptPanelOriginPos2;
         if (hideGo) hideGo.SetActive(true);
     }
 
