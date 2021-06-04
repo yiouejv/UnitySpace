@@ -22,4 +22,4 @@
 
 ### <a href="./blog">相关的博客</a>
 
-- <a href="unity Mathf.Lerp做匀速移动.md">unity Mathf.Lerp做匀速移动</a>
+- <a href="./blog/unity Mathf.Lerp做匀速移动.md">unity Mathf.Lerp做匀速移动</a>
